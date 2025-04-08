@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cube with Water Shader</title>
+  <title>Cube 4D avec Lumière Dynamique</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
@@ -15,21 +15,6 @@
     let scene, camera, renderer, cube;
     let clock = new THREE.Clock();
 
-    const vertexShader = `
-      void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `;
-
-    const fragmentShader = `
-      uniform float time;
-      void main() {
-        vec2 uv = gl_FragCoord.xy / vec2( window.innerWidth, window.innerHeight );
-        float wave = sin( uv.x * 10.0 + time ) * 0.1;
-        gl_FragColor = vec4( 0.0, 0.5 + wave, 1.0, 0.5 );
-      }
-    `;
-
     function init() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -37,19 +22,13 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
 
-      // Cube with custom shader material
+      // Cube avec matériau de base
       let geometry = new THREE.BoxGeometry(2, 2, 2);
-      let material = new THREE.ShaderMaterial({
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        uniforms: {
-          time: { value: 0.0 },
-        }
-      });
+      let material = new THREE.MeshBasicMaterial({ wireframe: true });
       cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
 
-      // Lighting
+      // Lumière directionnelle
       let light = new THREE.DirectionalLight(0xffffff, 1);
       light.position.set(1, 1, 1).normalize();
       scene.add(light);
@@ -66,13 +45,31 @@
       requestAnimationFrame(animate);
 
       let delta = clock.getDelta();
-      
-      // Update shader uniform for time-based animation
-      cube.material.uniforms.time.value += delta;
 
-      // Rotate the cube
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      // Rotation 4D projetée en 3D
+      let time = clock.getElapsedTime();
+      let rotationAngle = time * 0.5;
+      
+      let w = Math.cos(rotationAngle);
+      let x = Math.sin(rotationAngle);
+      let y = Math.cos(rotationAngle + Math.PI / 2);
+      let z = Math.sin(rotationAngle + Math.PI / 2);
+
+      let projectedX = x / (w + 1.0);
+      let projectedY = y / (w + 1.0);
+      let projectedZ = z / (w + 1.0);
+
+      // Rotation de la géométrie 4D projetée en 3D
+      cube.rotation.x += projectedX * delta;
+      cube.rotation.y += projectedY * delta;
+      cube.rotation.z += projectedZ * delta;
+
+      // Dynamique de couleur changeante basée sur les mathématiques
+      let r = Math.abs(Math.sin(time * 0.5));
+      let g = Math.abs(Math.cos(time * 0.5));
+      let b = Math.abs(Math.sin(time * 0.8));
+
+      cube.material.color.setRGB(r, g, b);
 
       renderer.render(scene, camera);
     }

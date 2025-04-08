@@ -2,114 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Cube Iframe avec Dégradé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tesseract Projection 3D</title>
   <style>
-    body {
-      margin: 0;
-      background: #000;
-      overflow: hidden;
-    }
-
-    .scene {
-      width: 200px;
-      height: 200px;
-      perspective: 800px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .cube {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      animation: spin 20s infinite linear;
-    }
-
-    .face {
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      box-sizing: border-box;
-      border: 4px solid;
-      border-image: linear-gradient(45deg, #00c6ff, #0072ff) 1;
-    }
-
-    .face iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .front  { transform: rotateY(  0deg) translateZ(100px); }
-    .back   { transform: rotateY(180deg) translateZ(100px); }
-    .right  { transform: rotateY( 90deg) translateZ(100px); }
-    .left   { transform: rotateY(-90deg) translateZ(100px); }
-    .top    { transform: rotateX( 90deg) translateZ(100px); }
-    .bottom { transform: rotateX(-90deg) translateZ(100px); }
-
-    @keyframes spin {
-      from { transform: rotateX(0deg) rotateY(0deg); }
-      to   { transform: rotateX(360deg) rotateY(360deg); }
-    }
+    body { margin: 0; }
+    canvas { display: block; }
   </style>
 </head>
 <body>
-
-  <div class="scene">
-    <div class="cube">
-      <div class="face front">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeFront"></iframe>
-      </div>
-      <div class="face back">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeBack"></iframe>
-      </div>
-      <div class="face right">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeRight"></iframe>
-      </div>
-      <div class="face left">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeLeft"></iframe>
-      </div>
-      <div class="face top">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeTop"></iframe>
-      </div>
-      <div class="face bottom">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeBottom"></iframe>
-      </div>
-    </div>
-  </div>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    const iframes = {
-      front: document.getElementById("iframeFront"),
-      back: document.getElementById("iframeBack"),
-      right: document.getElementById("iframeRight"),
-      left: document.getElementById("iframeLeft"),
-      top: document.getElementById("iframeTop"),
-      bottom: document.getElementById("iframeBottom")
-    };
+    let scene, camera, renderer;
+    let cube;
+    let angleX = 0, angleY = 0;
 
-    function addIframeToFace(face) {
-      const iframe = document.createElement('iframe');
-      iframe.src = "https://cazozozop.github.io/Infinite-Iframe/";
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.border = "none";
-      face.appendChild(iframe);
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Create the cube geometry (in 4D, this would be the projection of a tesseract)
+      const geometry = new THREE.BoxGeometry(1, 1, 1);
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+      cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      camera.position.z = 5;
+
+      animate();
     }
 
-    function addIframeEverySecond() {
-      setInterval(() => {
-        for (let key in iframes) {
-          addIframeToFace(iframes[key].contentWindow.document.body);
-        }
-      }, 1000);
+    function animate() {
+      requestAnimationFrame(animate);
+
+      angleX += 0.01;
+      angleY += 0.02;
+
+      // Apply rotation to the cube (this is a 3D projection of the 4D rotation)
+      cube.rotation.x = angleX;
+      cube.rotation.y = angleY;
+
+      renderer.render(scene, camera);
     }
 
-    addIframeEverySecond();
+    init();
   </script>
-
 </body>
 </html>

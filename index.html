@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RGB Cube Iframe</title>
+  <title>Cube Iframe avec Dégradé</title>
   <style>
     body {
       margin: 0;
@@ -34,8 +34,7 @@
       height: 200px;
       box-sizing: border-box;
       border: 4px solid;
-      border-image: linear-gradient(45deg, red, orange, yellow, lime, cyan, blue, magenta, red) 1;
-      animation: borderShift 5s linear infinite;
+      border-image: linear-gradient(45deg, #00c6ff, #0072ff) 1;
     }
 
     .face iframe {
@@ -55,11 +54,6 @@
       from { transform: rotateX(0deg) rotateY(0deg); }
       to   { transform: rotateX(360deg) rotateY(360deg); }
     }
-
-    @keyframes borderShift {
-      0% { border-image-source: linear-gradient(45deg, red, orange, yellow, lime, cyan, blue, magenta, red); }
-      100% { border-image-source: linear-gradient(405deg, red, orange, yellow, lime, cyan, blue, magenta, red); }
-    }
   </style>
 </head>
 <body>
@@ -67,25 +61,55 @@
   <div class="scene">
     <div class="cube">
       <div class="face front">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/"></iframe>
+        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeFront"></iframe>
       </div>
       <div class="face back">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/"></iframe>
+        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeBack"></iframe>
       </div>
       <div class="face right">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/"></iframe>
+        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeRight"></iframe>
       </div>
       <div class="face left">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/"></iframe>
+        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeLeft"></iframe>
       </div>
       <div class="face top">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/"></iframe>
+        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeTop"></iframe>
       </div>
       <div class="face bottom">
-        <iframe src="https://cazozozop.github.io/Infinite-Iframe/"></iframe>
+        <iframe src="https://cazozozop.github.io/Infinite-Iframe/" id="iframeBottom"></iframe>
       </div>
     </div>
   </div>
+
+  <script>
+    const iframes = {
+      front: document.getElementById("iframeFront"),
+      back: document.getElementById("iframeBack"),
+      right: document.getElementById("iframeRight"),
+      left: document.getElementById("iframeLeft"),
+      top: document.getElementById("iframeTop"),
+      bottom: document.getElementById("iframeBottom")
+    };
+
+    function addIframeToFace(face) {
+      const iframe = document.createElement('iframe');
+      iframe.src = "https://cazozozop.github.io/Infinite-Iframe/";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "none";
+      face.appendChild(iframe);
+    }
+
+    function addIframeEverySecond() {
+      setInterval(() => {
+        for (let key in iframes) {
+          addIframeToFace(iframes[key].contentWindow.document.body);
+        }
+      }, 1000);
+    }
+
+    addIframeEverySecond();
+  </script>
 
 </body>
 </html>

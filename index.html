@@ -1,80 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cube 4D avec Lumière Dynamique</title>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pentaract Projection</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
 </head>
 <body>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>
-    let scene, camera, renderer, cube;
-    let clock = new THREE.Clock();
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-    function init() {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      renderer = new THREE.WebGLRenderer();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+        // Create a simple tetrahedron to represent each "cell" of the pentaract
+        const geometry = new THREE.TetrahedronGeometry(1);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
 
-      // Cube avec matériau de base
-      let geometry = new THREE.BoxGeometry(2, 2, 2);
-      let material = new THREE.MeshBasicMaterial({ wireframe: true });
-      cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
+        const tetrahedrons = [];
+        const numTetrahedrons = 5;
+        const positions = [
+            [2, 2, 0],
+            [-2, 2, 0],
+            [2, -2, 0],
+            [-2, -2, 0],
+            [0, 0, 2]
+        ];
 
-      // Lumière directionnelle
-      let light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(1, 1, 1).normalize();
-      scene.add(light);
+        for (let i = 0; i < numTetrahedrons; i++) {
+            const tetrahedron = new THREE.Mesh(geometry, material);
+            tetrahedron.position.set(positions[i][0], positions[i][1], positions[i][2]);
+            tetrahedrons.push(tetrahedron);
+            scene.add(tetrahedron);
+        }
 
-      let ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-      scene.add(ambientLight);
+        camera.position.z = 5;
 
-      camera.position.z = 5;
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
 
-      animate();
-    }
+            // Rotate the whole system
+            tetrahedrons.forEach(tetra => {
+                tetra.rotation.x += 0.01;
+                tetra.rotation.y += 0.01;
+            });
 
-    function animate() {
-      requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
 
-      let delta = clock.getDelta();
+        animate();
 
-      // Rotation 4D projetée en 3D
-      let time = clock.getElapsedTime();
-      let rotationAngle = time * 0.5;
-      
-      let w = Math.cos(rotationAngle);
-      let x = Math.sin(rotationAngle);
-      let y = Math.cos(rotationAngle + Math.PI / 2);
-      let z = Math.sin(rotationAngle + Math.PI / 2);
-
-      let projectedX = x / (w + 1.0);
-      let projectedY = y / (w + 1.0);
-      let projectedZ = z / (w + 1.0);
-
-      // Rotation de la géométrie 4D projetée en 3D
-      cube.rotation.x += projectedX * delta;
-      cube.rotation.y += projectedY * delta;
-      cube.rotation.z += projectedZ * delta;
-
-      // Dynamique de couleur changeante basée sur les mathématiques
-      let r = Math.abs(Math.sin(time * 0.5));
-      let g = Math.abs(Math.cos(time * 0.5));
-      let b = Math.abs(Math.sin(time * 0.8));
-
-      cube.material.color.setRGB(r, g, b);
-
-      renderer.render(scene, camera);
-    }
-
-    init();
-  </script>
+        // Adjust camera on window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>

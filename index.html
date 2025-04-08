@@ -3,17 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Water Falling on Cube</title>
+  <title>Cube with Water Shader</title>
   <style>
-    body { margin: 0; }
+    body { margin: 0; overflow: hidden; }
     canvas { display: block; }
   </style>
 </head>
 <body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    let scene, camera, renderer, cube, waterParticles;
+    let scene, camera, renderer, cube;
     let clock = new THREE.Clock();
+
+    const vertexShader = `
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
+    const fragmentShader = `
+      uniform float time;
+      void main() {
+        vec2 uv = gl_FragCoord.xy / vec2( window.innerWidth, window.innerHeight );
+        float wave = sin( uv.x * 10.0 + time ) * 0.1;
+        gl_FragColor = vec4( 0.0, 0.5 + wave, 1.0, 0.5 );
+      }
+    `;
 
     function init() {
       scene = new THREE.Scene();
@@ -22,34 +37,27 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
 
-      // Cube with a simple material
+      // Cube with custom shader material
       let geometry = new THREE.BoxGeometry(2, 2, 2);
-      let material = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.5, metalness: 0.5 });
+      let material = new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        uniforms: {
+          time: { value: 0.0 },
+        }
+      });
       cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
 
-      // Water particles (falling water)
-      let waterGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-      let waterMaterial = new THREE.MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.8 });
-      waterParticles = [];
-      for (let i = 0; i < 100; i++) {
-        let waterDrop = new THREE.Mesh(waterGeometry, waterMaterial);
-        waterDrop.position.set(Math.random() * 4 - 2, Math.random() * 5 + 5, Math.random() * 4 - 2);
-        scene.add(waterDrop);
-        waterParticles.push(waterDrop);
-      }
-
-      // Lighting from top right
+      // Lighting
       let light = new THREE.DirectionalLight(0xffffff, 1);
       light.position.set(1, 1, 1).normalize();
       scene.add(light);
 
-      // Add ambient light
       let ambientLight = new THREE.AmbientLight(0x404040, 0.5);
       scene.add(ambientLight);
 
-      // Set the camera position
-      camera.position.z = 10;
+      camera.position.z = 5;
 
       animate();
     }
@@ -59,13 +67,8 @@
 
       let delta = clock.getDelta();
       
-      // Simulate water falling (gravity)
-      waterParticles.forEach(particle => {
-        particle.position.y -= 0.1;  // simulate gravity
-        if (particle.position.y < 0) {
-          particle.position.y = Math.random() * 5 + 5;  // reset position above the cube
-        }
-      });
+      // Update shader uniform for time-based animation
+      cube.material.uniforms.time.value += delta;
 
       // Rotate the cube
       cube.rotation.x += 0.01;
